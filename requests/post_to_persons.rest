@@ -1,0 +1,10 @@
+POST http://localhost:3000/api/persons
+content-type: application/json
+
+{
+    "name": "John Doe",
+    "number": "409201910"
+}
+
+###
+DELETE http://localhost:3000/api/persons/953
