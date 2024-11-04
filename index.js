@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 let persons = [
     { 
@@ -23,8 +24,8 @@ let persons = [
       "name": "Mary Poppendieck", 
       "number": "39-23-6423122"
     }
-]
-  
+]  
+
 const app = express()
 
 app.use(cors())
@@ -39,7 +40,9 @@ app.use(morgan('tiny :req-body'))
 app.use(express.json())
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(result => {
+        response.json(result)
+    })
 })
 
 app.get('/info', (request, response) => {
@@ -50,13 +53,16 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
+    /*const id = request.params.id
     const person = persons.find(person => person.id === id)
     if (person) {
         response.json(person)
     } else {
         response.status(404).end()
-    }
+    }*/
+    Person.findById(request.params.id).then(person => {
+            response.json(person)
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -73,22 +79,26 @@ app.post('/api/persons', (request, response) => {
     const name = request.body.name
     const number = request.body.number
 
-    if (!request.body) {
+    if (name === undefined || number === undefined) {
         return response.status(400).json({
             error: 'missing fields'
         })
     }
-    if (persons.some(person => person.name === name) )
+    /*if (persons.some(person => person.name === name) )
         return response.status(400).json({
             error: 'name must be unique'
-    })
+    })*/
 
-    const person = {
-        name: name,
-        number: number,
-        id: generateId()
-    }
-    persons = persons.concat(person)
+    const person = new Person ({
+            name: name,
+            number: number,
+            //id: generateId()
+        })
+    
+    //persons = persons.concat(person)
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    }) 
 })
 
 const PORT = process.env.PORT || 3001
